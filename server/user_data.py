@@ -13,3 +13,6 @@ def find_user_db(username):
         if user.get("username") == username:
             return user
     return None
+
+def add_user_db(user):
+    USERS_DATA.append(user)

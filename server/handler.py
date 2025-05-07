@@ -1,7 +1,6 @@
 from http.server import BaseHTTPRequestHandler
 import json
-from urllib.parse import urlparse
-from auth_api import auth_user
+from auth_api import auth_user, register_user
 from user_data import USERS_DATA
 
 class AuthHandler(BaseHTTPRequestHandler):
@@ -9,6 +8,10 @@ class AuthHandler(BaseHTTPRequestHandler):
     def do_POST(self):
         if self.path == "/api/login":
             self.handle_login()
+
+        elif self.path == "/api/register":
+            self.handle_register()
+            
         else:
             # tentou fazer POST em outro endpoint: Forbidden
             self.send_response(403)
@@ -42,5 +45,30 @@ class AuthHandler(BaseHTTPRequestHandler):
             res = {
                 "error": "Unauthorized",
                 "message": "Failed to authenticate user.",
+            }
+            self.wfile.write(json.dumps(res).encode())
+
+    def handle_register(self):
+        content_length = int(self.headers.get('Content-Length', 0))
+        body = self.rfile.read(content_length)
+        register_body = json.loads(body)
+        username = register_body.get("username")
+        password = register_body.get("password")
+
+        if register_user(username, password):
+            self.send_response(201)
+            self.send_header('Content-Type', 'application/json')
+            self.end_headers()
+            res = {
+                "message": "User registered successfully."
+            }
+            self.wfile.write(json.dumps(res).encode())
+        else:
+            self.send_response(409)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            res = {
+                "error": "Conflit",
+                "message": "User already exists.",
             }
             self.wfile.write(json.dumps(res).encode())
