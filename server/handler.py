@@ -36,11 +36,11 @@ class AuthHandler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(json.dumps({"token": token}).encode())
         else:
-            self.send_response(404)
+            self.send_response(401)
             self.send_header("Content-Type", "application/json")
             self.end_headers()
             res = {
-                "error": "Not Found",
-                "message": "User not found."
+                "error": "Unauthorized",
+                "message": "Failed to authenticate user.",
             }
             self.wfile.write(json.dumps(res).encode())
