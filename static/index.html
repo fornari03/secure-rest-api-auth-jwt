@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login Seguro</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 400px; margin: 0 auto; padding: 20px; }
+        .login-form { display: flex; flex-direction: column; gap: 10px; }
+        input, button { padding: 8px; font-size: 16px; }
+        button { background: #4CAF50; color: white; border: none; cursor: pointer; }
+        #result { margin-top: 20px; padding: 10px; border-radius: 4px; }
+        .success { background: #dff0d8; color: #3c763d; }
+        .error { background: #f2dede; color: #a94442; }
+    </style>
+</head>
+<body>
+    <h2>Login Seguro</h2>
+    <form class="login-form" onsubmit="login(event)">
+        <input type="text" id="username" placeholder="Usuário" required>
+        <input type="password" id="password" placeholder="Senha" required>
+        <button type="submit">Login</button>
+    </form>
+    <div id="result"></div>
+    
+    <script>
+        async function login(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            try {
+                const response = await fetch('http://localhost:4443/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const resultDiv = document.getElementById('result');
+                if (response.ok) {
+                    const data = await response.json();
+                    resultDiv.className = 'success';
+                    resultDiv.innerHTML = `
+                        <p>Login bem-sucedido!</p>
+                        <p>Token: ${data.token.substring(0, 20)}...</p>
+                        <button onclick="accessData('${data.token}')">Acessar Dados Protegidos</button>
+                    `;
+                } else {
+                    resultDiv.className = 'error';
+                    resultDiv.textContent = `Erro: ${await response.text()}`;
+                }
+            } catch (error) {
+                document.getElementById('result').className = 'error';
+                document.getElementById('result').textContent = `Erro: ${error.message}`;
+            }
+        }
+        
+        async function accessData(token) {
+            try {
+                const response = await fetch('http://localhost:4444', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                const resultDiv = document.getElementById('result');
+                if (response.ok) {
+                    const data = await response.json();
+                    resultDiv.className = 'success';
+                    resultDiv.textContent = `Dados protegidos: ${JSON.stringify(data)}`;
+                } else {
+                    resultDiv.className = 'error';
+                    resultDiv.textContent = `Acesso negado: ${await response.text()}`;
+                }
+            } catch (error) {
+                document.getElementById('result').className = 'error';
+                document.getElementById('result').textContent = `Erro: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>
