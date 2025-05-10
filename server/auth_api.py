@@ -12,12 +12,12 @@ JWT_SECRET_HMAC = os.urandom(32)
 JWT_EXPIRATION = 3600
 
 def load_rsa_keys():
-    private_key_path = "keys/private.pem"
-    public_key_path = "keys/public.pem"
+    key_dir = "keys"
+    private_key_path = os.path.join(key_dir, "private.pem")
+    public_key_path = os.path.join(key_dir, "public.pem")
 
-    # Cria os diretórios se não existirem
-    os.makedirs(os.path.dirname(private_key_path), exist_ok=True)
-    os.makedirs(os.path.dirname(public_key_path), exist_ok=True)
+    # Cria o diretório se não existir
+    os.makedirs(key_dir, exist_ok=True)
 
     if not os.path.exists(private_key_path) or not os.path.exists(public_key_path):
         private_key = rsa.generate_private_key(
