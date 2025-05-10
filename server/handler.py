@@ -1,6 +1,6 @@
 from http.server import BaseHTTPRequestHandler
 import json
-from auth_api import auth_user, register_user
+from auth_api import auth_user, register_user, generate_jwt
 from user_data import USERS_DATA
 
 class AuthHandler(BaseHTTPRequestHandler):
@@ -26,14 +26,14 @@ class AuthHandler(BaseHTTPRequestHandler):
 
     def handle_login(self):
         content_length = int(self.headers.get('Content-Length', 0)) # se não tiver, length = 0
-        body = self.rfile.read(content_length)
+        body = self.rfile.read(content_length).decode()
         login_body = json.loads(body)
 
         username = login_body.get("username")  
         password = login_body.get("password")
 
         if auth_user(username, password):
-            token = {"username": username, "password": password} # TODO: fazer o token JWT
+            token = generate_jwt(username, algorithm="HMAC")
             self.send_response(200)
             self.send_header('Content-Type', 'application/json')
             self.end_headers()
