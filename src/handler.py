@@ -1,8 +1,6 @@
-import os
-import json
-
 from http.server import BaseHTTPRequestHandler
 from auth_api import auth_user, register_user, generate_jwt, verify_jwt
+import json
 
 class AuthHandler(BaseHTTPRequestHandler):
     def _set_headers(self, content_type='application/json'):
