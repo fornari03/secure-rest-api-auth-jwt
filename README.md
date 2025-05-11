@@ -19,3 +19,10 @@ sh setup.sh
 ```bash
 python3 src/server.py
 ```
+## EndPoints and APIs
+
+```bash
+https://localhost:4443/login    // api/login
+https://localhost:4443/register // api/register
+https://localhost:4443/secret   // api/protected
+```
