@@ -81,3 +81,18 @@ def auth_user(login_username, login_password):
 
 def register_user(login_username, login_password):
     return add_user(login_username, login_password)
+
+def verify_jwt(token, algorithm="HMAC"):
+    try:
+        if algorithm == "HMAC":
+            payload = jwt.decode(token, JWT_SECRET_HMAC, algorithms=["HS256"])
+        elif algorithm == "RSA":
+            payload = jwt.decode(token, RSA_PUBLIC_KEY, algorithms=["RS256"])
+        else:
+            raise ValueError("Apenas HMAC e RSA são suportados.")
+        
+        return payload
+    except jwt.ExpiredSignatureError:
+        return None
+    except jwt.InvalidTokenError:
+        return None

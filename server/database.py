@@ -18,7 +18,6 @@ def init_db():
         )
         ''')
         conn.commit()
-        print("Banco de dados inicializado e tabela criada (se não existia).")
 
 def find_user_db(username: str) -> Optional[Dict]:
     """Busca um usuário pelo username"""
