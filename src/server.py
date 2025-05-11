@@ -1,8 +1,13 @@
 from http.server import HTTPServer
 from handler import AuthHandler
 import ssl
+import os
+import subprocess
 
 def run():
+    if not os.path.exists('certificates/cert.pem') or not os.path.exists('keys/private.pem'):
+        subprocess.run(['./generate.sh'], check=True)
+
     server_address = ('localhost', 4443) # usa a porta 4443 pra não dar conflito com o https padrão
     server = HTTPServer(server_address, AuthHandler)
 

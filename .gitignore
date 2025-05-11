@@ -1,6 +1,7 @@
 # Keys
-keys/*.pem
-certificates/*.pem
+keys
+certificates
+users.db
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
