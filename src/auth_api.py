@@ -1,11 +1,7 @@
-from database import verify_user, add_user
-
-import os
-import jwt
-import time
+from database import verify_user, add_user, add_to_blacklist
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives.asymmetric import rsa
+import os, time, jwt
 
 def load_rsa_keys():
     key_dir = "keys"
@@ -38,6 +34,7 @@ def generate_jwt(username, algorithm):
         "sub": username,
         "iat": int(time.time()),
         "exp": int(time.time()) + JWT_EXPIRATION,
+        "jti": str(os.urandom(16).hex()),
     }
 
     if algorithm == "HS256":
@@ -46,7 +43,7 @@ def generate_jwt(username, algorithm):
         token = jwt.encode(payload, RSA_PRIVATE_KEY, algorithm="RS256")
     else:
         raise ValueError("Apenas HMAC e RSA são suportados.")
-    
+        
     return token
 
 def auth_user(login_username, login_password):
@@ -57,9 +54,10 @@ def register_user(login_username, login_password):
 
 def verify_jwt(token, algorithm):
     try:
-        if algorithm == "HMAC":
+
+        if algorithm == "HS256":
             payload = jwt.decode(token, HMAC_SECRET, algorithms=["HS256"])
-        elif algorithm == "RSA":
+        elif algorithm == "RS256":
             payload = jwt.decode(token, RSA_PUBLIC_KEY, algorithms=["RS256"])
         else:
             raise ValueError("Apenas HMAC e RSA são suportados.")
@@ -70,18 +68,17 @@ def verify_jwt(token, algorithm):
     except jwt.InvalidTokenError:
         return None
     
-def get_token_algorithm(token):
+def get_jti(token, algorithm):
     try:
-        jwt.decode(token, HMAC_SECRET, algorithms=["HS256"])
-        return "HMAC"
+        if algorithm == "HS256":
+            payload = jwt.decode(token, HMAC_SECRET, algorithms=["HS256"])
+        elif algorithm == "RS256":
+            payload = jwt.decode(token, RSA_PUBLIC_KEY, algorithms=["RS256"])
+        else:
+            raise ValueError("Apenas HMAC e RSA são suportados.")
+        
+        return payload.get("jti")
+    except jwt.ExpiredSignatureError:
+        return None
     except jwt.InvalidTokenError:
-        pass  # Token inválido para HMAC
-
-    try:
-        # Tenta decodificar o token com a chave RSA
-        jwt.decode(token, RSA_PUBLIC_KEY, algorithms=["RS256"])
-        return "RSA"
-    except jwt.InvalidTokenError:
-        pass  # Token inválido para RSA
-
-    return None  # Nenhum algoritmo válido encontrado
+        return None

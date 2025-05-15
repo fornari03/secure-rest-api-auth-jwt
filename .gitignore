@@ -2,6 +2,7 @@
 keys
 certificates
 users.db
+blacklist.db
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

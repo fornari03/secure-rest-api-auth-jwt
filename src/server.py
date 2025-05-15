@@ -1,8 +1,6 @@
 from http.server import HTTPServer
 from handler import AuthHandler
 import ssl
-import os
-import subprocess
 
 def run():
 

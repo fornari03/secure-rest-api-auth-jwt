@@ -1,6 +1,7 @@
 from http.server import BaseHTTPRequestHandler
-from auth_api import auth_user, register_user, generate_jwt, verify_jwt, get_token_algorithm
-import json
+from auth_api import auth_user, register_user, generate_jwt, verify_jwt, get_jti, add_to_blacklist
+from database import is_blacklisted
+import json, jwt
 
 class AuthHandler(BaseHTTPRequestHandler):
     def _set_headers(self, content_type='application/json'):
@@ -16,6 +17,9 @@ class AuthHandler(BaseHTTPRequestHandler):
 
         elif self.path == "/api/register":
             self.handle_register()
+
+        elif self.path == "/api/logout":
+            self.handle_logout()
             
         else:
             # tentou fazer POST em outro endpoint: Forbidden
@@ -54,13 +58,39 @@ class AuthHandler(BaseHTTPRequestHandler):
         auth_header = self.headers.get('Authorization')
         if not auth_header or not auth_header.startswith('Bearer '):
             self.send_error(401)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            res = {
+                "error": "Unauthorized",
+                "message": "Token is missing or invalid.",
+            }
+            self.wfile.write(json.dumps(res).encode())
             return
         
         token = auth_header.split(' ')[1]
-        algorithm = get_token_algorithm(token)
-        
+        algorithm = jwt.get_unverified_header(token).get("alg")
+        jti = get_jti(token, algorithm)
+
+        if is_blacklisted(jti):
+            self.send_error(401)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            res = {
+                "error": "Unauthorized",
+                "message": "Token is blacklisted. Please log in again.",
+            }
+            self.wfile.write(json.dumps(res).encode())
+            return
+
         if not verify_jwt(token, algorithm):
             self.send_error(401)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            res = {
+                "error": "Unauthorized",
+                "message": "Token is invalid or expired.",
+            }
+            self.wfile.write(json.dumps(res).encode())
             return
         
         self.send_response(200)
@@ -136,3 +166,29 @@ class AuthHandler(BaseHTTPRequestHandler):
                 "message": "User already exists.",
             }
             self.wfile.write(json.dumps(res).encode())
+
+    def handle_logout(self):
+        auth_header = self.headers.get('Authorization')
+        if not auth_header or not auth_header.startswith('Bearer '):
+            self.send_error(401)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            res = {
+                "error": "Unauthorized",
+                "message": "Token is missing or invalid.",
+            }
+            self.wfile.write(json.dumps(res).encode())
+            return
+        
+        token = auth_header.split(' ')[1]
+        algorithm = jwt.get_unverified_header(token).get("alg")
+        jti = get_jti(token, algorithm)
+
+        add_to_blacklist(jti)
+        self.send_response(200)
+        self.send_header("Content-Type", "application/json")
+        self.end_headers()
+        res = {
+            "message": "Logout successful.",
+        }
+        self.wfile.write(json.dumps(res).encode())
