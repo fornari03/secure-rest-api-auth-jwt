@@ -22,13 +22,13 @@
             border-radius: 8px; 
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); 
         }
-        input, button { 
+        input, button, select { 
             padding: 10px; 
             font-size: 16px; 
             border: 1px solid #ccc; 
             border-radius: 4px; 
         }
-        input:focus { 
+        input:focus, select:focus { 
             outline: none; 
             border-color: #4CAF50; 
             box-shadow: 0 0 5px rgba(76, 175, 80, 0.5); 
@@ -73,6 +73,11 @@
         <input type="text" id="username" placeholder="Digite seu usuário" required>
         <label for="password">Senha</label>
         <input type="password" id="password" placeholder="Digite sua senha" required>
+        <label for="algorithm">Algoritmo de Assinatura</label>
+        <select id="algorithm" required>
+            <option value="HS256">HMAC</option>
+            <option value="RS256">RSA</option>
+        </select>
         <button type="submit">Entrar</button>
     </form>
     <div id="result"></div>
@@ -83,12 +88,13 @@
             e.preventDefault();
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
+            const algorithm = document.getElementById('algorithm').value;
             
             try {
                 const response = await fetch('https://localhost:4443/api/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password })
+                    body: JSON.stringify({ username, password, algorithm })
                 });
                 
                 const resultDiv = document.getElementById('result');

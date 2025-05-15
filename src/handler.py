@@ -1,5 +1,5 @@
 from http.server import BaseHTTPRequestHandler
-from auth_api import auth_user, register_user, generate_jwt, verify_jwt
+from auth_api import auth_user, register_user, generate_jwt, verify_jwt, get_token_algorithm
 import json
 
 class AuthHandler(BaseHTTPRequestHandler):
@@ -57,7 +57,9 @@ class AuthHandler(BaseHTTPRequestHandler):
             return
         
         token = auth_header.split(' ')[1]
-        if not verify_jwt(token):  # Implemente esta função no auth_api.py
+        algorithm = get_token_algorithm(token)
+        
+        if not verify_jwt(token, algorithm):
             self.send_error(401)
             return
         
@@ -77,20 +79,25 @@ class AuthHandler(BaseHTTPRequestHandler):
 
         username = login_body.get("username")  
         password = login_body.get("password")
+        algorithm = login_body.get("algorithm")
 
         if auth_user(username, password):
-            token = generate_jwt(username, algorithm="HMAC")
+            token = generate_jwt(username, algorithm)
+            response = {
+                "token": token,
+                "algorithm": algorithm
+            }
             self.send_response(200)
             self.send_header('Content-Type', 'application/json')
             self.end_headers()
-            self.wfile.write(json.dumps({"token": token}).encode())
+            self.wfile.write(json.dumps(response).encode())
         else:
             self.send_response(401)
             self.send_header("Content-Type", "application/json")
             self.end_headers()
             res = {
                 "error": "Unauthorized",
-                "message": "Failed to authenticate user.",
+                "message": "Failed to authenticate user or algorithm not defined.",
             }
             self.wfile.write(json.dumps(res).encode())
 

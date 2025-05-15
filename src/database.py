@@ -5,8 +5,8 @@ from typing import Optional, Dict
 
 DATABASE_NAME = 'users.db'
 
+# Cria o banco de dados e a tabela de usuários se não existir
 def init_db():
-    """Inicializa o banco de dados e cria a tabela se não existir"""
     with sqlite3.connect(DATABASE_NAME) as conn:
         cursor = conn.cursor()
         cursor.execute('''
@@ -19,8 +19,8 @@ def init_db():
         ''')
         conn.commit()
 
+# Encontra um usuário no banco de dados
 def find_user_db(username: str) -> Optional[Dict]:
-    """Busca um usuário pelo username"""
     with sqlite3.connect(DATABASE_NAME) as conn:
         conn.row_factory = sqlite3.Row  # Para retornar dicionários
         cursor = conn.cursor()
@@ -67,8 +67,8 @@ def verify_user(username, password):
     
     return test_hash == stored_hash
 
+# Função para criar um usuário admin padrão
 def create_admin_user():
-    """Cria um usuário admin se não existir"""
     username = "admin"
     password = "admin@123"  # Senha padrão para o admin
 
