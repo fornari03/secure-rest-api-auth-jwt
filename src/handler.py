@@ -1,6 +1,7 @@
 from http.server import BaseHTTPRequestHandler
+from datetime import datetime
 from auth_api import auth_user, register_user, generate_jwt, verify_jwt, get_jti, add_to_blacklist
-from database import is_blacklisted
+from database import is_blacklisted, find_user_db
 import json, jwt
 
 class AuthHandler(BaseHTTPRequestHandler):
@@ -82,7 +83,8 @@ class AuthHandler(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps(res).encode())
             return
 
-        if not verify_jwt(token, algorithm):
+        payload = verify_jwt(token, algorithm)
+        if payload is None:
             self.send_error(401)
             self.send_header("Content-Type", "application/json")
             self.end_headers()
@@ -93,14 +95,29 @@ class AuthHandler(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps(res).encode())
             return
         
+        user = find_user_db(payload.get("sub"))
+        if user is None:
+            self.send_error(401)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            res = {
+                "error": "Unauthorized",
+                "message": "User not found.",
+            }
+            self.wfile.write(json.dumps(res).encode())
+            return
+
         self.send_response(200)
         self.send_header('Content-Type', 'application/json')
         self.end_headers()
         self.wfile.write(json.dumps({
-            "user": "admin",
-            "password": "admin@123",
+            "user": user["username"],
+            "created_at": datetime.strptime(user["created_at"], "%Y-%m-%d %H:%M:%S").strftime("%d/%m/%Y às %H:%M:%S"),
             "secret_info": "DADOS ULTRA SECRETOS!!!",
         }).encode())
+        del payload # remove o payload para não vazar informações
+        del user # remove o usuário para não vazar informações
+        # redundante, mas é uma boa prática
 
     def handle_login(self):
         content_length = int(self.headers.get('Content-Length', 0)) # se não tiver, length = 0
