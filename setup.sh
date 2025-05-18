@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 1. Instala dependências do sistema
-sudo apt-get update > /dev/null
+sudo apt-get update -y > /dev/null
 sudo apt-get install -y openssl python3 python3-cryptography > /dev/null
 
 # 2. Cria estrutura de diretórios
