@@ -2,13 +2,15 @@
 
 # 1. Instala dependências do sistema
 sudo apt-get update -y > /dev/null
-sudo apt-get install -y openssl python3 python3-cryptography > /dev/null
+sudo apt-get install -y openssl python3 python3-cryptography python3-jwt python3-bcrypt > /dev/null
 
 # 2. Cria estrutura de diretórios
 mkdir -p keys certificates
 
 # 3. Gera certificados SSL e RSA (se não existirem)
 if [ ! -f "keys/rsa_private.pem" ] || [ ! -f "certificates/cert.pem" ]; then
+
+    # Gera chave privada e certificado autoassinado
     openssl req -x509 -newkey rsa:2048 \
         -keyout keys/rsa_private.pem \
         -out certificates/cert.pem \
