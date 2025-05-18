@@ -23,13 +23,13 @@ class AuthHandler(BaseHTTPRequestHandler):
             self.handle_logout()
             
         else:
-            # tentou fazer POST em outro endpoint: Forbidden
-            self.send_response(403)
+            # tentou fazer POST em outro endpoint: Not Found
+            self.send_response(404)
             self.send_header("Content-Type", "application/json")
             self.end_headers()
             res = {
-                "error": "Forbidden",
-                "message": "Endpoint not allowed for POST."
+                "error": "Not Found",
+                "message": "Endpoint not found.",
             }
             self.wfile.write(json.dumps(res).encode())
 
