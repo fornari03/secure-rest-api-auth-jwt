@@ -7,7 +7,8 @@ This repository contains a secure REST client-server application that implements
 Follow the steps below to set up and run the application:
 
 ```bash
-git clone <repository-link>
+git clone git@github.com:fornari03/secure-rest-api-auth-jwt.git
+cd secure-rest-api-auth-jwt
 ```
 
 Run the setup script to configure the environment:
