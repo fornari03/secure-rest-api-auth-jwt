@@ -189,7 +189,7 @@ class AuthHandler(BaseHTTPRequestHandler):
             self.send_header("Content-Type", "application/json")
             self.end_headers()
             res = {
-                "error": "Conflit",
+                "error": "Conflict",
                 "message": "User already exists.",
             }
             self.wfile.write(json.dumps(res).encode())
