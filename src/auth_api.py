@@ -30,6 +30,7 @@ HMAC_SECRET = open("keys/hmac_key.pem", "rb").read()
 JWT_EXPIRATION = 3600
 
 def generate_jwt(username, algorithm):
+    # gera o payload com as informações (claims)
     payload = {
         "sub": username,
         "iat": int(time.time()),
@@ -37,6 +38,7 @@ def generate_jwt(username, algorithm):
         "jti": str(os.urandom(16).hex()),
     }
 
+    # assina de acordo com o que o usuário selecionou
     if algorithm == "HS256":
         token = jwt.encode(payload, HMAC_SECRET, algorithm="HS256")
     elif algorithm == "RS256":
@@ -47,12 +49,15 @@ def generate_jwt(username, algorithm):
     return token
 
 def auth_user(login_username, login_password):
+    # verifica se as credenciais do usuário estão corretas
     return verify_user(login_username, login_password)
 
 def register_user(login_username, login_password):
+    # adiciona o novo usuário caso ele não exista
     return add_user(login_username, login_password)
 
 def verify_jwt(token, algorithm):
+    # verifica se o token é válido
     try:
 
         if algorithm == "HS256":
@@ -69,6 +74,7 @@ def verify_jwt(token, algorithm):
         return None
     
 def get_jti(token, algorithm):
+    # retorna o jti caso o token seja válido
     try:
         if algorithm == "HS256":
             payload = jwt.decode(token, HMAC_SECRET, algorithms=["HS256"])

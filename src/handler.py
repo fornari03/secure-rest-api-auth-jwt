@@ -12,7 +12,7 @@ class AuthHandler(BaseHTTPRequestHandler):
         self.send_header('Access-Control-Allow-Headers', 'Content-Type, Authorization')
 
     def do_POST(self):
-        # Verifica se o endpoint é /api/login ou /api/register
+        # Verifica se o endpoint é /api/login, /api/register ou /api/logout
         if self.path == "/api/login":
             self.handle_login()
 
@@ -34,6 +34,7 @@ class AuthHandler(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps(res).encode())
 
     def serve_html_file(self, filename):
+        # serve a página HTML estática
         try:
             with open(f"static/{filename}", 'rb') as file:
                 self.send_response(200)
@@ -44,6 +45,7 @@ class AuthHandler(BaseHTTPRequestHandler):
             self.send_error(404, "Página não encontrada")
 
     def do_GET(self):
+        # verifica se é um endpoint que tem algum recurso a ser retornado
         if self.path == "/api/protected":
             self.handle_protected()
         elif self.path in ["/", "/login"]:
@@ -57,6 +59,8 @@ class AuthHandler(BaseHTTPRequestHandler):
 
     def handle_protected(self):
         auth_header = self.headers.get('Authorization')
+
+        # verifica a validade do cabeçalho de autorização
         if not auth_header or not auth_header.startswith('Bearer '):
             self.send_error(401)
             self.send_header("Content-Type", "application/json")
@@ -72,6 +76,7 @@ class AuthHandler(BaseHTTPRequestHandler):
         algorithm = jwt.get_unverified_header(token).get("alg")
         jti = get_jti(token, algorithm)
 
+        # verifica se o token está na blacklist
         if is_blacklisted(jti):
             self.send_error(401)
             self.send_header("Content-Type", "application/json")
@@ -84,6 +89,7 @@ class AuthHandler(BaseHTTPRequestHandler):
             return
 
         payload = verify_jwt(token, algorithm)
+        # verifica se o token é válido
         if payload is None:
             self.send_error(401)
             self.send_header("Content-Type", "application/json")
@@ -96,6 +102,7 @@ class AuthHandler(BaseHTTPRequestHandler):
             return
         
         user = find_user_db(payload.get("sub"))
+        # verifica se o usuário existe
         if user is None:
             self.send_error(401)
             self.send_header("Content-Type", "application/json")
@@ -128,6 +135,7 @@ class AuthHandler(BaseHTTPRequestHandler):
         password = login_body.get("password")
         algorithm = login_body.get("algorithm")
 
+        # faz a autenticação do usuário e verifica se foi correta
         if auth_user(username, password):
             token = generate_jwt(username, algorithm)
             response = {
@@ -155,6 +163,7 @@ class AuthHandler(BaseHTTPRequestHandler):
         username = register_body.get("username")
         password = register_body.get("password")
 
+        # verifica se o usuário preencheu username e password
         if not username or not password:
             self.send_response(400)
             self.send_header("Content-Type", "application/json")
@@ -166,6 +175,7 @@ class AuthHandler(BaseHTTPRequestHandler):
             self.wfile.write(json.dumps(res).encode())
             return
 
+        # faz o registro do usuário e verifica se deu certo
         if register_user(username, password):
             self.send_response(201)
             self.send_header('Content-Type', 'application/json')
@@ -186,6 +196,7 @@ class AuthHandler(BaseHTTPRequestHandler):
 
     def handle_logout(self):
         auth_header = self.headers.get('Authorization')
+        # verifica a validação do cabeçalho de autorização
         if not auth_header or not auth_header.startswith('Bearer '):
             self.send_error(401)
             self.send_header("Content-Type", "application/json")
@@ -201,6 +212,7 @@ class AuthHandler(BaseHTTPRequestHandler):
         algorithm = jwt.get_unverified_header(token).get("alg")
         jti = get_jti(token, algorithm)
 
+        # adiciona o jti ao blacklist pois o token agora é inválido
         add_to_blacklist(jti)
         self.send_response(200)
         self.send_header("Content-Type", "application/json")
