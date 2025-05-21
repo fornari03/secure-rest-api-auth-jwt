@@ -20,6 +20,17 @@ sh setup.sh
 ```bash
 python3 src/server.py
 ```
+
+To run with Docker:
+
+```docker
+docker build -t rest-api
+```
+
+```docker
+docker run -it -p 4443:4443 rest-api
+```
+
 ## EndPoints and APIs
 
 ```bash

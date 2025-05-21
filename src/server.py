@@ -4,7 +4,7 @@ import ssl
 
 def run():
 
-    server_address = ('localhost', 4443)
+    server_address = ('0.0.0.0', 4443)
     server = HTTPServer(server_address, AuthHandler)
 
     # cria o contexto SSL/TLS
